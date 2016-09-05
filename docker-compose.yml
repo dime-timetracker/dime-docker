@@ -1,0 +1,31 @@
+version: '2'
+services:
+  varnish:
+    image: million12/varnish
+    depends_on:
+      - api
+      - frontend
+    ports:
+      - "8100:80"
+    volumes:
+      - ./varnish:/etc/varnish/
+  api:
+    build: docker/api
+    image: dime_api
+    depends_on:
+      - db
+    volumes:
+      - ./server:/app
+  db:
+    image: mysql:latest
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+    volumes:
+      - ./db/var/lib/mysql:/var/lib/mysql
+      - ./db/etc/mysql/conf.d/:/etc/mysql/conf.d/
+  frontend:
+    image: nginx:latest
+    depends_on:
+      - api
+    volumes:
+      - ./frontend/public/:/usr/share/nginx/html

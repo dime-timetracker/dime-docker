@@ -1,0 +1,6 @@
+[submodule "frontend"]
+	path = frontend
+	url = git://github.com/dime-timetracker/frontend.git
+[submodule "server"]
+	path = server
+	url = git://github.com/dime-timetracker/server.git
