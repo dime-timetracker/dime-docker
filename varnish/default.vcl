@@ -11,7 +11,7 @@ backend api {
 }
 
 sub vcl_recv {
-  if (req.url ~ "^/api") {
+  if (req.url ~ "^/api" || req.url ~ "^/log(in|out)" || req.url ~ "^/register" || req.url ~ "^/invoice") {
     set req.backend_hint = api;
     set req.url = "/public" + req.url;
   } else {
