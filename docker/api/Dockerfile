@@ -10,6 +10,7 @@ RUN apt-get update && \
         mysql-client \
         php-mysql \
         xvfb \
+        unzip \
         wkhtmltopdf && \
     rm -rf /var/lib/apt/lists/* && \
     curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer

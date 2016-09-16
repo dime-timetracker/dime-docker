@@ -29,6 +29,19 @@ fi
 echo "Initialize Docker"
 docker-compose up -d
 
+echo "Setup Server"
+serverConfig="server/config/parameters.php"
+sed -r "s/'dbname' => '.*'/'dbname' => 'dime'/" $serverConfig.dist > $serverConfig
+sed -i -r "s/'host' => '.*'/'host' => 'db'/" $serverConfig
+
+curl -s https://getcomposer.org/installer > server/composer-setup.php
+docker-compose run api php -r "if (hash_file('SHA384', 'composer-setup.php') !== 'e115a8dc7871f15d853148a7fbac7da27d6c0030b848d9b3dc09e2a0388afed865e6a3d6b3c0fad45c48e2b5fc1196ae') { echo 'Installer corrupt'; unlink('composer-setup.php');  } echo PHP_EOL;"
+docker-compose run api php composer-setup.php
+rm server/composer-setup.php
+docker-compose run api php composer.phar install --no-dev
+docker-compose run api mysql -hdb -uroot -e "create database dime"
+docker-compose run api php console.php dime:install
+
 echo "Setup Frontend"
 frontendConfig="frontend/src/parameters.js"
 echo "Using ${fqn} as server name. Please adjust $frontendConfig manually, if that is not correct."
@@ -36,17 +49,6 @@ cp $frontendConfig.template $frontendConfig
 echo "env.baseUrl = \"$fqn:8100\"" >> $frontendConfig
 cd frontend; npm install; npm run build
 cd ..
-
-echo "Setup Server"
-serverConfig="server/config/parameters.php"
-sed -r "s/'host' => '.*'/'host' => 'db'/" $serverConfig.dist > $serverConfig
-
-curl -s https://getcomposer.org/installer > server/composer-setup.php
-docker exec -it dime_api_1 php -r "if (hash_file('SHA384', 'composer-setup.php') !== 'e115a8dc7871f15d853148a7fbac7da27d6c0030b848d9b3dc09e2a0388afed865e6a3d6b3c0fad45c48e2b5fc1196ae') { echo 'Installer corrupt'; unlink('composer-setup.php');  } echo PHP_EOL;"
-docker exec -it dime_api_1 php composer-setup.php
-rm composer-setup.php
-docker exec -it dime_api_1 php composer.phar install
-docker exec -it dime_api_1 php console.php dime:install
 
 touch .installed
 
